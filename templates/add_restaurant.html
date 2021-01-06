@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<main>
+    <h1>New Restaurant</h1>
+
+    <form method='POST'>
+        <fieldset>
+            <legend>Please enter a new restaurant:</legend>
+
+            <label>
+                Restaurant's name:
+                <input type="text" name="restaurant_name">
+            </label>
+            
+            <label>
+                Restaurant type:
+                <input type="text" name="restaurant_type">
+            </label>
+
+            <label>
+                Restaurant ethnicity:
+                <input type="text" name="restaurant_ethnicity">
+            </label>
+
+            <input type="submit" class="submit" value="Submit!">
+        </fieldset>
+    </form>
+</main>
+
+{% endblock content %}
