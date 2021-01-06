@@ -19,6 +19,25 @@ def homepage():
     ''' Restaurant picker homepage '''
     return render_template('home.html')
 
+@app.route('/add_restaurant', methods=['GET', 'POST'])
+def add_restaurant():
+    ''' Add restaurant to the database '''
+    if request.method == 'POST':
+        new_restaurant = {
+            'name': request.form.get('restaurant_name'),
+            'type': request.form.get('restaurant_type'),
+            'ethnicity': request.form.get('restaurant_ethnicity')
+            'price': request.form.get('price')
+        }
+
+        result = db.restaurants.insert_one(new_restaurant)
+        print(result.inserted_id)
+        # return redirect(url_for('detail', plant_id = result.inserted_id))
+        return render_template('home.html')
+
+    else:
+        return render_template('add_restaurant.html')
+
 if __name__ == '__main__':
     app.config['ENV'] = 'development'
     app.run(debug=True)
