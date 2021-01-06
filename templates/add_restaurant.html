@@ -15,12 +15,27 @@
             
             <label>
                 Restaurant type:
-                <input type="text" name="restaurant_type">
+                <select name="restaurant_type" id="restaurant_type">
+                    <option value="Fast Food">Fast Food</option>
+                    <option value="Casual Dining">Casual Dining</option>
+                    <option value="Family Style">Family Style</option>
+                    <option value="Fine Dining">Fine Dining</option>
+                </select>
             </label>
 
             <label>
                 Restaurant ethnicity:
                 <input type="text" name="restaurant_ethnicity">
+            </label>
+
+            <label>
+                Restaurant price:
+                <select name="price" id="price">
+                    <option value="$">$</option>
+                    <option value="$$">$$</option>
+                    <option value="$$$">$$$</option>
+                    <option value="$$$$">$$$$</option>
+                </select>
             </label>
 
             <input type="submit" class="submit" value="Submit!">
