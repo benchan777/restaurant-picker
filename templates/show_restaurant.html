@@ -4,7 +4,11 @@
 <main>
     <h1>Show Restaurants</h1>
 
-    <p>{{ all_restaurants }}</p>
+    <img src="{{ image }}" alt="{{ name }} image">
+    <p>Name: {{ name }}</p>
+    <p>Address: {{ address }}</p>
+    <p>Price: {{ price }}</p>
+    <p>Rating: {{ rating }}</p>
 </main>
 
 {% endblock content %}
