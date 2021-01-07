@@ -3,6 +3,9 @@ from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+from bs4 import BeautifulSoup
+import requests
+from html5lib import html5parser
 
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
@@ -26,17 +29,20 @@ def add_restaurant():
         new_restaurant = {
             'name': request.form.get('restaurant_name'),
             'type': request.form.get('restaurant_type'),
-            'ethnicity': request.form.get('restaurant_ethnicity')
+            'ethnicity': request.form.get('restaurant_ethnicity'),
             'price': request.form.get('price')
         }
 
         result = db.restaurants.insert_one(new_restaurant)
         print(result.inserted_id)
-        # return redirect(url_for('detail', plant_id = result.inserted_id))
         return render_template('home.html')
 
     else:
         return render_template('add_restaurant.html')
+
+@app.route('/search_restaurants', methods=['GET', 'POST'])
+def search_restaurants():
+    ''' Search for new restaurants to add to databse '''
 
 if __name__ == '__main__':
     app.config['ENV'] = 'development'
