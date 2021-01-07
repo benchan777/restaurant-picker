@@ -9,6 +9,11 @@
     <p>Address: {{ address }}</p>
     <p>Price: {{ price }}</p>
     <p>Rating: {{ rating }}</p>
+    <button onClick="window.location.reload();">Pick another random restaurant</button>
+
+    <form method = 'POST'>
+        <input type="submit" class="submit" value="Go Home">
+    </form>
 </main>
 
 {% endblock content %}
