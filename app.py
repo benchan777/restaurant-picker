@@ -6,6 +6,7 @@ import os
 from bs4 import BeautifulSoup
 import requests
 from html5lib import html5parser
+from bson.objectid import ObjectId
 
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
@@ -51,7 +52,6 @@ def search_restaurants():
         restaurant_location = location.replace(" ", "+")
         
         r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}%2C+CA")
-        print(r)
         soup = BeautifulSoup(r.content, features="html5lib")
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(len(restaurants_list))
@@ -74,6 +74,17 @@ def search_restaurants():
             except:
                 l["rating"] = "No Rating"
 
+            try:
+                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__3F3c5"})
+                l["image"] = image['src']
+            except:
+                l["image"] = "No Image"
+
+            try:
+                l["address"] = restaurants_list[i].find("span", {"class":"raw__09f24__3Obuy"}).string
+            except:
+                l["image"] = "No Address"
+
             db.restaurants.insert_one(l)
             print(l)
 
@@ -81,6 +92,19 @@ def search_restaurants():
 
     else:
         return render_template('search_restaurants.html')
+
+@app.route('/show_restaurants')
+def show_restaurants():
+    ''' Displays restaurants in the database/displays random restaurant? '''
+    test_list = []
+    for item in db.restaurants.find():
+        test_list.append(item)
+
+    context = {
+        'all_restaurants': test_list
+    }
+
+    return render_template('show_restaurant.html', **context)
 
 if __name__ == '__main__':
     app.config['ENV'] = 'development'
