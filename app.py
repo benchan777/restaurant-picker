@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -53,18 +53,17 @@ def search_restaurants():
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
         
-        # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        # soup = BeautifulSoup(r.content, features="html5lib")
+        r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        soup = BeautifulSoup(r.content, features="html5lib")
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-
-        proxyDict = {"http"  : prox, "https":prox}
-        r = requests.get(url, proxies=proxyDict).text
-        soup = BeautifulSoup(r, 'html.parser')
+        # url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        # prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        # proxyDict = {"http"  : prox, "https":prox}
+        # r = requests.get(url, proxies=proxyDict).text
+        # soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(len(restaurants_list))
@@ -101,34 +100,40 @@ def search_restaurants():
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
-        return render_template('show_restaurant.html')
+        return redirect(url_for('show_restaurants'))
 
     else:
         return render_template('search_restaurants.html')
 
-@app.route('/show_restaurants')
+@app.route('/show_restaurants', methods=['GET', 'POST'])
 def show_restaurants():
     ''' Displays restaurants in the database/displays random restaurant? '''
-    restaurant_list = []
-    for item in db.restaurants.find():
-        restaurant_list.append(item)
+    if request.method == 'POST':
+        db.restaurants.drop()
+        print("collection deleted")
+        return render_template ('home.html')
 
-    random_restaurant = restaurant_list[random.randint(0, len(restaurant_list)-1)]
-    name = random_restaurant['name']
-    price = random_restaurant['price']
-    rating = random_restaurant['rating']
-    address = random_restaurant['address']
-    image = random_restaurant['image']
+    else:
+        restaurant_list = []
+        for item in db.restaurants.find():
+            restaurant_list.append(item)
 
-    context = {
-        'name': name,
-        'price': price,
-        'rating': rating,
-        'address': address,
-        'image': image
-    }
+        random_restaurant = restaurant_list[random.randint(0, len(restaurant_list)-1)]
+        name = random_restaurant['name']
+        price = random_restaurant['price']
+        rating = random_restaurant['rating']
+        address = random_restaurant['address']
+        image = random_restaurant['image']
 
-    return render_template('show_restaurant.html', **context)
+        context = {
+            'name': name,
+            'price': price,
+            'rating': rating,
+            'address': address,
+            'image': image
+        }
+
+        return render_template('show_restaurant.html', **context)
 
 if __name__ == '__main__':
     app.config['ENV'] = 'development'
