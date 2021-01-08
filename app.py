@@ -54,28 +54,22 @@ def search_restaurants():
     if request.method == 'POST':
         api_key = os.getenv('api_key')
         location = ''
+
         try:
-            # response = requests.get("http://ip-api.com/json")
-            # js = response.json()
-            # location = js['city']
-            # print(location)
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                # print(request.environ['REMOTE_ADDR'])
-                # ip = request.environ['REMOTE_ADDR']
-                # response = requests.get(f"http://ip-api.com/json/{ip}")
-                # js = response.json()
-                # location = js['city']
                 response = requests.get("http://ip-api.com/json")
                 js = response.json()
                 location = js['city']
+                print(f"User's IP address: {js['query']}. (Not forwarded)")
                 print(f"Location based on ip address: {location}. (Not forwarded)")
+
             else:
-                print(request.environ['HTTP_X_FORWARDED_FOR'])
+                print(f"User's IP address: {request.environ['HTTP_X_FORWARDED_FOR']}. (Forwarded)")
                 ip = request.environ['HTTP_X_FORWARDED_FOR']
                 response = requests.get(f"http://ip-api.com/json/{ip}")
                 js = response.json()
                 location = js['city']
-                print(f"Location based on ip address: {location}")
+                print(f"Location based on ip address: {location}. (Forwarded)")
 
         except:
             pass
@@ -92,17 +86,17 @@ def search_restaurants():
         print(restaurant_type)
         print(restaurant_location)
         
-        r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        soup = BeautifulSoup(r.content, features="html5lib")
+        # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        # soup = BeautifulSoup(r.content, features="html5lib")
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        # url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        # prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        # proxyDict = {"http"  : prox, "https":prox}
-        # r = requests.get(url, proxies=proxyDict).text
-        # soup = BeautifulSoup(r, 'html.parser')
+        url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        proxyDict = {"http"  : prox, "https":prox}
+        r = requests.get(url, proxies=proxyDict).text
+        soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
@@ -116,12 +110,12 @@ def search_restaurants():
             try:
                 new_restaurant["name"] = restaurants_list[i].find("a", {"class":"link__09f24__1kwXV link-color--inherit__09f24__3PYlA link-size--inherit__09f24__2Uj95"}).string
             except:
-                new_restaurant["name"] = "No Name"
+                new_restaurant["name"] = "Name Unavailable"
 
             try:
                 new_restaurant["price"] = restaurants_list[i].find("span", {"class":"text__09f24__2tZKC priceRange__09f24__2O6le text-color--black-extra-light__09f24__38DtK text-align--left__09f24__3Drs0 text-bullet--after__09f24__1MWoX"}).string
             except:
-                new_restaurant["price"] = "No Price"
+                new_restaurant["price"] = "Price Unavailable"
             
             try:
                 new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4__09f24__2YrSK border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
@@ -138,26 +132,26 @@ def search_restaurants():
                             try:
                                 new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-5__09f24__N5JxY border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
                             except:
-                                new_restaurant["rating"] = "No Rating"
+                                new_restaurant["rating"] = "Rating Unavailable"
 
             try:
                 image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__3F3c5"})
                 new_restaurant["image"] = image['src']
             except:
-                new_restaurant["image"] = "No Image"
+                new_restaurant["image"] = "Image Unavailable"
 
             try:
                 new_restaurant["address"] = restaurants_list[i].find("span", {"class":"raw__09f24__3Obuy"}).string
             except:
-                new_restaurant["image"] = "No Address"
+                new_restaurant["image"] = "Address Unavailable"
 
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
         global global_restaurant_type
-        global_restaurant_type = restaurant_type.replace("+", " ")
         global global_restaurant_location
-        global_restaurant_location = restaurant_location.replace("+", " ")
+        global_restaurant_type = restaurant_type.replace("+", " ").title()
+        global_restaurant_location = restaurant_location.replace("+", " ").title()
 
         return redirect(url_for('show_restaurants'))
 
