@@ -53,20 +53,30 @@ def search_restaurants():
     ''' Search for new restaurants to add to databse '''
     if request.method == 'POST':
         api_key = os.getenv('api_key')
+        location = ''
         try:
             # response = requests.get("http://ip-api.com/json")
             # js = response.json()
             # location = js['city']
             # print(location)
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                print(request.environ['REMOTE_ADDR'])
+                # print(request.environ['REMOTE_ADDR'])
+                # ip = request.environ['REMOTE_ADDR']
+                # response = requests.get(f"http://ip-api.com/json/{ip}")
+                # js = response.json()
+                # location = js['city']
+                response = requests.get("http://ip-api.com/json")
+                js = response.json()
+                location = js['city']
+                print(f"Location based on ip address: {location}. (Not forwarded)")
             else:
                 print(request.environ['HTTP_X_FORWARDED_FOR'])
                 ip = request.environ['HTTP_X_FORWARDED_FOR']
                 response = requests.get(f"http://ip-api.com/json/{ip}")
                 js = response.json()
                 location = js['city']
-                print(location)
+                print(f"Location based on ip address: {location}")
+
         except:
             pass
 
