@@ -32,7 +32,10 @@ def add_restaurant():
             'name': request.form.get('restaurant_name'),
             'type': request.form.get('restaurant_type'),
             'ethnicity': request.form.get('restaurant_ethnicity'),
-            'price': request.form.get('price')
+            'price': request.form.get('price'),
+            'rating': "No Rating",
+            'address': "No Address",
+            'image': "No Image"
         }
 
         result = db.restaurants.insert_one(new_restaurant)
@@ -53,17 +56,17 @@ def search_restaurants():
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
         
-        r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        soup = BeautifulSoup(r.content, features="html5lib")
+        # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        # soup = BeautifulSoup(r.content, features="html5lib")
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        # url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        # prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        # proxyDict = {"http"  : prox, "https":prox}
-        # r = requests.get(url, proxies=proxyDict).text
-        # soup = BeautifulSoup(r, 'html.parser')
+        url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        proxyDict = {"http"  : prox, "https":prox}
+        r = requests.get(url, proxies=proxyDict).text
+        soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(len(restaurants_list))
@@ -84,7 +87,19 @@ def search_restaurants():
             try:
                 new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4__09f24__2YrSK border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
             except:
-                new_restaurant["rating"] = "No Rating"
+                try:
+                    new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4-half__09f24__1YrPo border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                except:
+                    try:
+                        new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3-half__09f24__dpRnb border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                    except:
+                        try:
+                            new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3__09f24__Xlhbn border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                        except:
+                            try:
+                                new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-5__09f24__N5JxY border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                            except:
+                                new_restaurant["rating"] = "No Rating"
 
             try:
                 image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__3F3c5"})
@@ -111,7 +126,7 @@ def show_restaurants():
     if request.method == 'POST':
         db.restaurants.drop()
         print("collection deleted")
-        return render_template ('home.html')
+        return redirect(url_for('search_restaurants'))
 
     else:
         restaurant_list = []
