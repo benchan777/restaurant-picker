@@ -19,6 +19,9 @@ app = Flask(__name__)
 client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority")
 db = client[MONGODB_DBNAME]
 
+global_restaurant_type = ''
+global_restaurant_location = ''
+
 @app.route('/')
 def homepage():
     ''' Restaurant picker homepage '''
@@ -70,17 +73,17 @@ def search_restaurants():
         print(restaurant_type)
         print(restaurant_location)
         
-        # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        # soup = BeautifulSoup(r.content, features="html5lib")
+        r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        soup = BeautifulSoup(r.content, features="html5lib")
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        proxyDict = {"http"  : prox, "https":prox}
-        r = requests.get(url, proxies=proxyDict).text
-        soup = BeautifulSoup(r, 'html.parser')
+        # url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        # prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        # proxyDict = {"http"  : prox, "https":prox}
+        # r = requests.get(url, proxies=proxyDict).text
+        # soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
@@ -132,12 +135,12 @@ def search_restaurants():
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
-        # context = {
-        #     'restaurant_type': restaurant_type,
-        #     'restaurant_location': restaurant_location
-        # }
+        global global_restaurant_type
+        global_restaurant_type = restaurant_type.replace("+", " ")
+        global global_restaurant_location
+        global_restaurant_location = restaurant_location.replace("+", " ")
 
-        return redirect(url_for('show_restaurants', type = restaurant_type, location = restaurant_location))
+        return redirect(url_for('show_restaurants'))
 
     else:
         return render_template('search_restaurants.html')
@@ -170,7 +173,9 @@ def show_restaurants():
             'price': price,
             'rating': rating,
             'address': address,
-            'image': image
+            'image': image,
+            'restaurant_type': global_restaurant_type,
+            'restaurant_location': global_restaurant_location
         }
 
         return render_template('show_restaurant.html', **context)
