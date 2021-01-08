@@ -50,11 +50,25 @@ def search_restaurants():
     ''' Search for new restaurants to add to databse '''
     if request.method == 'POST':
         api_key = os.getenv('api_key')
+        try:
+            response = requests.get("http://ip-api.com/json")
+            js = response.json()
+            location = js['city']
+            print(location)
+        except:
+            pass
+
         food_type = request.form.get('food_type')
-        location = request.form.get('location')
+        if request.form.get('location') == '':
+            pass
+        else:
+            location = request.form.get('location')
 
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
+
+        print(restaurant_type)
+        print(restaurant_location)
         
         # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
         # soup = BeautifulSoup(r.content, features="html5lib")
@@ -69,7 +83,10 @@ def search_restaurants():
         soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
-        print(len(restaurants_list))
+        print(f"Number of restaurants in list: {len(restaurants_list)}")
+
+        db.restaurants.drop()
+        print("collection deleted")
 
         for i in range(0, len(restaurants_list)):
             new_restaurant = {}
@@ -115,7 +132,12 @@ def search_restaurants():
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
-        return redirect(url_for('show_restaurants'))
+        # context = {
+        #     'restaurant_type': restaurant_type,
+        #     'restaurant_location': restaurant_location
+        # }
+
+        return redirect(url_for('show_restaurants', type = restaurant_type, location = restaurant_location))
 
     else:
         return render_template('search_restaurants.html')
@@ -124,8 +146,6 @@ def search_restaurants():
 def show_restaurants():
     ''' Displays restaurants in the database/displays random restaurant? '''
     if request.method == 'POST':
-        db.restaurants.drop()
-        print("collection deleted")
         return redirect(url_for('search_restaurants'))
 
     else:
