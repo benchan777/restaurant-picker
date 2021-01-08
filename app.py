@@ -58,7 +58,10 @@ def search_restaurants():
             js = response.json()
             location = js['city']
             print(location)
-            print(request.environ['REMOTE_ADDR'])
+            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+                print(request.environ['REMOTE_ADDR'])
+            else:
+                print(request.environ['HTTP_X_FORWARDED_FOR'])
         except:
             pass
 
