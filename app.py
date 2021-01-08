@@ -133,7 +133,12 @@ def show_restaurants():
         for item in db.restaurants.find():
             restaurant_list.append(item)
 
-        random_restaurant = restaurant_list[random.randint(0, len(restaurant_list)-1)]
+        random_restaurant = ''
+        try:
+            random_restaurant = restaurant_list[random.randint(0, len(restaurant_list)-1)]
+        except:
+            return render_template('home.html')
+
         name = random_restaurant['name']
         price = random_restaurant['price']
         rating = random_restaurant['rating']
