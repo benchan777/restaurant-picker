@@ -28,6 +28,11 @@ def homepage():
     ''' Restaurant picker homepage '''
     return render_template('home.html')
 
+@app.route('/about')
+def about():
+    ''' About page '''
+    return render_template('about.html')
+
 @app.route('/add_restaurant', methods=['GET', 'POST'])
 def add_restaurant():
     ''' Add restaurant to the database '''
@@ -100,7 +105,7 @@ def search_restaurants():
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
-        
+
         try:
             url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
             prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
