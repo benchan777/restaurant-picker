@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask import Flask, request, render_template, redirect, url_for, jsonify, flash
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ MONGODB_PASSWORD = os.getenv('MONGODB_PASSWORD')
 MONGODB_DBNAME = 'Cluster1'
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority")
 db = client[MONGODB_DBNAME]
@@ -74,11 +75,16 @@ def search_restaurants():
         except:
             pass
 
-        food_type = request.form.get('food_type')
-        if request.form.get('location') == '':
-            pass
+        if request.form['button'] == 'Search using my location!':
+            food_type = request.form.get('food_type')
         else:
+            food_type = request.form.get('food_type')
             location = request.form.get('location')
+            if request.form.get('location') == '':
+                flash("Please enter a location!")
+                return render_template('search_restaurants.html')
+            else:
+                pass
 
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
@@ -86,17 +92,17 @@ def search_restaurants():
         print(restaurant_type)
         print(restaurant_location)
         
-        # r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        # soup = BeautifulSoup(r.content, features="html5lib")
+        r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        soup = BeautifulSoup(r.content, features="html5lib")
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        proxyDict = {"http"  : prox, "https":prox}
-        r = requests.get(url, proxies=proxyDict).text
-        soup = BeautifulSoup(r, 'html.parser')
+        # url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        # prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        # proxyDict = {"http"  : prox, "https":prox}
+        # r = requests.get(url, proxies=proxyDict).text
+        # soup = BeautifulSoup(r, 'html.parser')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
@@ -162,7 +168,13 @@ def search_restaurants():
 def show_restaurants():
     ''' Displays restaurants in the database/displays random restaurant? '''
     if request.method == 'POST':
-        return redirect(url_for('search_restaurants'))
+
+        if request.form['button'] == 'Start Over':
+            return redirect(url_for('search_restaurants'))
+        
+        else:
+            return redirect(url_for('search_restaurants'))
+
 
     else:
         restaurant_list = []
