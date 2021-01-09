@@ -2,19 +2,25 @@
 {% block content %}
 
 <main>
-    <h1>Show Restaurants</h1>
+    <div class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="column justify-content-center align-items-center">
+                <h1>Show Restaurants</h1>
 
-    <h3>Showing random {{ restaurant_type }} restaurants in {{ restaurant_location }}!</h3>
-    <img src="{{ image }}" alt="{{ name }} image">
-    <p>Name: {{ name }}</p>
-    <p>Address: {{ address }}</p>
-    <p>Price: {{ price }}</p>
-    <p>Rating: {{ rating }}</p>
-    <button onClick="window.location.reload();">Show another random restaurant</button>
+                <h3>Showing random {{ restaurant_type }} restaurants in {{ restaurant_location }}!</h3>
+                <img src="{{ image }}" alt="{{ name }} image">
+                <p>Name: {{ name }}</p>
+                <p>Address: {{ address }}</p>
+                <p>Price: {{ price }}</p>
+                <p>Rating: {{ rating }}</p>
+                <button onClick="window.location.reload();">Show another random restaurant</button>
 
-    <form method='POST'>
-        <input type="submit" class="submit" value="Start Over" name="button">
-    </form>
+                <form method='POST'>
+                    <input type="submit" class="submit" value="Start Over" name="button">
+                </form>
+            </div>
+        </div>
+    </div>
 
 </main>
 

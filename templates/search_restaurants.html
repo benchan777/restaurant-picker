@@ -2,43 +2,49 @@
 {% block content %}
 
 <main>
-    <h1>Search Restaurants</h1>
+    <div class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="column justify-content-center align-items-center">
+                <h2>Search Restaurants</h2>
 
-    <!-- Error message container -->
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-warning alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
-                    aria-hidden="true">×</span></button>
-            {{message}}
+                <!-- Error message container -->
+                <div class="container">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-warning alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                aria-hidden="true">×</span></button>
+                        {{message}}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <form method='POST'>
+                    <fieldset>
+                        <legend>Please enter restaurant info:</legend>
+
+                        <label>
+                            Type of food:
+                            <input type="text" name="food_type">
+                        </label>
+                        <input type="submit" class="submit" value="Search using my location!" name="button">
+
+                        <p>Or enter your location manually here</p>
+
+                        <label>
+                            Location:
+                            <input type="text" name="location">
+                        </label>
+
+                        <input type="submit" class="submit" value="Submit!" name="button">
+                    </fieldset>
+                </form>
+            </div>
         </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-        </div>
-
-    <form method = 'POST'>
-        <fieldset>
-            <legend>Please enter restaurant info:</legend>
-
-            <label>
-                Type of food:
-                <input type="text" name="food_type">
-            </label>
-            <input type="submit" class="submit" value="Search using my location!" name="button">
-
-            <p>Or enter your location manually here</p>
-
-            <label>
-                Location:
-                <input type="text" name="location">
-            </label>
-
-            <input type="submit" class="submit" value="Submit!" name="button">
-        </fieldset>
-    </form>
+    </div>
 </main>
 
 {% endblock content %}
