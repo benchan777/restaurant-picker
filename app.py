@@ -8,7 +8,7 @@ import requests
 from html5lib import html5parser
 from bson.objectid import ObjectId
 import random
-from flask_googlemaps import GoogleMaps, Map, get_address, get_coordinates
+from flask_googlemaps import GoogleMaps, Map
 
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
@@ -23,8 +23,15 @@ app.secret_key = os.urandom(24)
 client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority")
 db = client[MONGODB_DBNAME]
 
-global_restaurant_type = ''
-global_restaurant_location = ''
+def get_coordinates(API_KEY, address_text):
+    ''' google maps api to get coordinates from address '''
+    response = requests.get(
+        "https://maps.googleapis.com/maps/api/geocode/json?address="
+        + address_text
+        + "&key="
+        + API_KEY
+    ).json()
+    return response["results"][0]["geometry"]["location"]
 
 @app.route('/')
 def homepage():
