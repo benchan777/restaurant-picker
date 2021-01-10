@@ -14,7 +14,7 @@ load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
 MONGODB_PASSWORD = os.getenv('MONGODB_PASSWORD')
 MONGODB_DBNAME = 'Cluster1'
-google_maps_api_key = os.getenv('google_maps_api')
+google_maps_api_key = os.getenv('google_maps_api_key')
 
 app = Flask(__name__)
 GoogleMaps(app, key=google_maps_api_key)
