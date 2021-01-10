@@ -1,14 +1,14 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify, flash
-from flask_pymongo import PyMongo
-from pymongo import MongoClient
-from dotenv import load_dotenv
-import os
 from bs4 import BeautifulSoup
-import requests
-from html5lib import html5parser
 from bson.objectid import ObjectId
-import random
+from dotenv import load_dotenv
+from flask import Flask, request, render_template, redirect, url_for, jsonify, flash
 from flask_googlemaps import GoogleMaps, Map
+from flask_pymongo import PyMongo
+from html5lib import html5parser
+from pymongo import MongoClient
+import os
+import random
+import requests
 
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
