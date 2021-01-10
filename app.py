@@ -8,13 +8,16 @@ import requests
 from html5lib import html5parser
 from bson.objectid import ObjectId
 import random
+from flask_googlemaps import GoogleMaps, Map, get_address, get_coordinates
 
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
 MONGODB_PASSWORD = os.getenv('MONGODB_PASSWORD')
 MONGODB_DBNAME = 'Cluster1'
+google_maps_api_key = os.getenv('google_maps_api')
 
 app = Flask(__name__)
+GoogleMaps(app, key=google_maps_api_key)
 app.secret_key = os.urandom(24)
 
 client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority")
@@ -101,44 +104,44 @@ def search_restaurants():
         print(restaurant_type)
         print(restaurant_location)
         
-        # try:
-        #     r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-        #     soup = BeautifulSoup(r.content, features="html5lib")
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     render_template('home.html')
+        try:
+            r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+            soup = BeautifulSoup(r.content, features="html5lib")
+        except:
+            flash("Error finding restaurants. Please try again!")
+            render_template('home.html')
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        try:
-            url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-            prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        except:
-            flash("Error finding restaurants. Please try again!")
-            print("Error: scraping failed")
-            render_template('home.html')
+        # try:
+        #     url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+        #     prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        # except:
+        #     flash("Error finding restaurants. Please try again!")
+        #     print("Error: scraping failed")
+        #     render_template('home.html')
 
-        try:
-            proxyDict = {"http"  : prox, "https":prox}
-        except:
-            flash("Error finding restaurants. Please try again!")
-            print("Error: scraping failed")
-            render_template('home.html')
+        # try:
+        #     proxyDict = {"http"  : prox, "https":prox}
+        # except:
+        #     flash("Error finding restaurants. Please try again!")
+        #     print("Error: scraping failed")
+        #     render_template('home.html')
 
-        try:
-            r = requests.get(url, proxies=proxyDict).text
-        except:
-            flash("Error finding restaurants. Please try again!")
-            print("Error: scraping failed")
-            render_template('home.html')
+        # try:
+        #     r = requests.get(url, proxies=proxyDict).text
+        # except:
+        #     flash("Error finding restaurants. Please try again!")
+        #     print("Error: scraping failed")
+        #     render_template('home.html')
 
-        try:
-            soup = BeautifulSoup(r, 'html.parser')
-        except:
-            flash("Error finding restaurants. Please try again!")
-            print("Error: scraping failed")
-            render_template('home.html')
+        # try:
+        #     soup = BeautifulSoup(r, 'html.parser')
+        # except:
+        #     flash("Error finding restaurants. Please try again!")
+        #     print("Error: scraping failed")
+        #     render_template('home.html')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
@@ -247,6 +250,9 @@ def show_restaurants():
         restaurant_type = restaurant_information_list[0]['type'].title()
         restaurant_location = restaurant_information_list[0]['location'].title()
 
+        #gets restaurant coordinates to be displayed on the map
+        restaurant_coordinates = get_coordinates(google_maps_api_key, f"{address} {restaurant_location}")
+
         context = {
             'name': name,
             'price': price,
@@ -254,7 +260,9 @@ def show_restaurants():
             'address': address,
             'image': image,
             'restaurant_type': restaurant_type,
-            'restaurant_location': restaurant_location
+            'restaurant_location': restaurant_location,
+            'lat': restaurant_coordinates['lat'],
+            'lng': restaurant_coordinates['lng']
         }
 
         return render_template('show_restaurant.html', **context)
