@@ -4,7 +4,7 @@ chardet==4.0.0
 click==7.1.2
 dnspython==2.0.0
 Flask==1.1.2
--e git+git://github.com/benchan777/flask-googlemaps.git#egg=flask-googlemaps
+flask-googlemaps==0.4.0
 Flask-PyMongo==2.3.0
 future==0.18.2
 gunicorn==20.0.4
