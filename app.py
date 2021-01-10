@@ -143,6 +143,7 @@ def search_restaurants():
         print(f"Number of restaurants in list: {len(restaurants_list)}")
 
         db.restaurants.drop()
+        db.restaurant_info.drop()
         print("collection deleted")
 
         for i in range(0, len(restaurants_list)):
@@ -189,10 +190,17 @@ def search_restaurants():
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
-        global global_restaurant_type
-        global global_restaurant_location
-        global_restaurant_type = restaurant_type.replace("+", " ").title()
-        global_restaurant_location = restaurant_location.replace("+", " ").title()
+        # global global_restaurant_type
+        # global global_restaurant_location
+        # global_restaurant_type = restaurant_type.replace("+", " ").title()
+        # global_restaurant_location = restaurant_location.replace("+", " ").title()
+
+        #store restaurant information in db
+        restaurant_information = {}
+        restaurant_information["type"] = food_type
+        restaurant_information["location"] = location
+
+        db.restaurant_info.insert_one(restaurant_information)
 
         return redirect(url_for('show_restaurants'))
 
@@ -230,14 +238,22 @@ def show_restaurants():
         address = random_restaurant['address']
         image = random_restaurant['image']
 
+        #retrieve restaurant information from db
+        restaurant_information_list = []
+        for item in db.restaurant_info.find():
+            restaurant_information_list.append(item)
+        
+        restaurant_type = restaurant_information_list[0]['type'].title()
+        restaurant_location = restaurant_information_list[0]['location'].title()
+        
         context = {
             'name': name,
             'price': price,
             'rating': rating,
             'address': address,
             'image': image,
-            'restaurant_type': global_restaurant_type,
-            'restaurant_location': global_restaurant_location
+            'restaurant_type': restaurant_type,
+            'restaurant_location': restaurant_location
         }
 
         return render_template('show_restaurant.html', **context)
