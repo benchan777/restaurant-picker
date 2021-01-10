@@ -62,6 +62,7 @@ def search_restaurants():
         location = ''
 
         try:
+            #checks if ip address is being forwarded. depends if running locally or deployed
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                 response = requests.get("http://ip-api.com/json")
                 js = response.json()
@@ -100,52 +101,54 @@ def search_restaurants():
         print(restaurant_type)
         print(restaurant_location)
         
-        try:
-            r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-            soup = BeautifulSoup(r.content, features="html5lib")
-        except:
-            flash("Error finding restaurants. Please try again!")
-            render_template('home.html')
+        # try:
+        #     r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
+        #     soup = BeautifulSoup(r.content, features="html5lib")
+        # except:
+        #     flash("Error finding restaurants. Please try again!")
+        #     render_template('home.html')
 
         # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
         # soup = BeautifulSoup(r, 'html.parser')
 
-        # try:
-        #     url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        #     prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
+        try:
+            url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
+            prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
+        except:
+            flash("Error finding restaurants. Please try again!")
+            print("Error: scraping failed")
+            render_template('home.html')
 
-        # try:
-        #     proxyDict = {"http"  : prox, "https":prox}
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
+        try:
+            proxyDict = {"http"  : prox, "https":prox}
+        except:
+            flash("Error finding restaurants. Please try again!")
+            print("Error: scraping failed")
+            render_template('home.html')
 
-        # try:
-        #     r = requests.get(url, proxies=proxyDict).text
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
+        try:
+            r = requests.get(url, proxies=proxyDict).text
+        except:
+            flash("Error finding restaurants. Please try again!")
+            print("Error: scraping failed")
+            render_template('home.html')
 
-        # try:
-        #     soup = BeautifulSoup(r, 'html.parser')
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
+        try:
+            soup = BeautifulSoup(r, 'html.parser')
+        except:
+            flash("Error finding restaurants. Please try again!")
+            print("Error: scraping failed")
+            render_template('home.html')
 
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
 
+        #clear db before repopulating it with information from new search
         db.restaurants.drop()
         db.restaurant_info.drop()
         print("collection deleted")
 
+        #iterate through all discovered restaurants in the list and adds information to new_restaurant dictionary
         for i in range(0, len(restaurants_list)):
             new_restaurant = {}
 
@@ -190,11 +193,6 @@ def search_restaurants():
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
-        # global global_restaurant_type
-        # global global_restaurant_location
-        # global_restaurant_type = restaurant_type.replace("+", " ").title()
-        # global_restaurant_location = restaurant_location.replace("+", " ").title()
-
         #store restaurant information in db
         restaurant_information = {}
         restaurant_information["type"] = food_type
@@ -220,13 +218,16 @@ def show_restaurants():
 
 
     else:
+        #adds all restaurants in the db to restaurant_list
         restaurant_list = []
         for item in db.restaurants.find():
             restaurant_list.append(item)
 
+        #chooses a random restaurant from the list to be displayed
         random_restaurant = ''
         try:
             random_restaurant = restaurant_list[random.randint(0, len(restaurant_list)-1)]
+        #displays error if list is empty (happens if scraping failed)
         except:
             flash("Error finding restaurants. Please try again!")
             print("Error: No restaurants in the database")
@@ -245,7 +246,7 @@ def show_restaurants():
         
         restaurant_type = restaurant_information_list[0]['type'].title()
         restaurant_location = restaurant_information_list[0]['location'].title()
-        
+
         context = {
             'name': name,
             'price': price,
