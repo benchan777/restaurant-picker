@@ -11,6 +11,24 @@
                 <p>Address: {{ address }}</p>
                 <p>Price: {{ price }}</p>
                 <p>Rating: {{ rating }}</p>
+                <p>
+                    {% with %}
+
+                    {% set location=(lat, lng) %}
+                    {% set style="width:550px;height:550px;"%}
+
+                    {{
+                    googlemap(
+                    "simple-map",
+                    location.0, location.1,
+                    markers=[location,],
+                    style=style,
+                    zoom=18
+                    )
+                    }}
+
+                    {% endwith %}
+                </p>
                 <button onClick="window.location.reload();">Show another random restaurant</button>
 
                 <form method='POST'>
