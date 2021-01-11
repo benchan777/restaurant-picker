@@ -7,8 +7,6 @@ Random Restaurant Generator
 {% block content %}
 
 <body>
-    <h1>Restaurant picker homepage</h1>
-
     <!-- Error message container -->
     <div class="container">
         {% with messages = get_flashed_messages() %}
@@ -24,10 +22,11 @@ Random Restaurant Generator
         {% endwith %}
         </div>
 
-    <ul>
-        <li><a href="/add_restaurant">Add Restaurant</a></li>
-        <li><a href="/search_restaurants">Search Restaurants</a></li>
-    </ul>
+    <div class="jumbotron jumbotron-fluid bg-cover text-white text-center vertical-center" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.6) 100%), url(/static/images/background.jpg)">
+        <h1>Random Restaurant Generator</h1>
+        <p class="lead">Having trouble deciding where to eat? We can help!</p>
+        <a href="/search_restaurants" class="btn btn-primary">Get Started</a>
+    </div>
 </body>
 
 {% endblock content %}
