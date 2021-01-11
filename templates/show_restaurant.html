@@ -16,11 +16,12 @@ Random Restaurant
                 <p>Address: {{ address }}</p>
                 <p>Price: {{ price }}</p>
                 <p>Rating: {{ rating }}</p>
+                <button class = "btn btn-primary" onClick="window.location.reload();">Show another random restaurant</button>
                 <p>
                     {% with %}
 
                     {% set location=(lat, lng) %}
-                    {% set style="width:550px;height:550px;"%}
+                    {% set style="width:900px;height:400px;"%}
 
                     {{
                     googlemap(
@@ -34,10 +35,10 @@ Random Restaurant
 
                     {% endwith %}
                 </p>
-                <button onClick="window.location.reload();">Show another random restaurant</button>
+                <!-- <button class = "btn btn-primary" onClick="window.location.reload();">Show another random restaurant</button> -->
 
                 <form method='POST'>
-                    <input type="submit" class="submit" value="Start Over" name="button">
+                    <button class = "btn btn-danger" type="submit" class="submit" value="Start Over" name="button">Start Over</button>
                 </form>
             </div>
         </div>
