@@ -73,12 +73,16 @@ def search_restaurants():
 
         try:
             #checks if ip address is being forwarded. depends if running locally or deployed
+            location_storage = {}
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                 response = requests.get("http://ip-api.com/json")
                 js = response.json()
                 location = js['city']
                 print(f"User's IP address: {js['query']}. (Not forwarded)")
                 print(f"Location based on ip address: {location}. (Not forwarded)")
+                location_storage['ip'] = response
+                location_storage['city'] = location
+                db.location_storage.insert_one()
 
             else:
                 print(f"User's IP address: {request.environ['HTTP_X_FORWARDED_FOR']}. (Forwarded)")
@@ -87,6 +91,9 @@ def search_restaurants():
                 js = response.json()
                 location = js['city']
                 print(f"Location based on ip address: {location}. (Forwarded)")
+                location_storage['ip'] = response
+                location_storage['city'] = location
+                db.location_storage.insert_one()
 
         except:
             pass
