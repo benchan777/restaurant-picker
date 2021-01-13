@@ -6,6 +6,7 @@ from flask_googlemaps import GoogleMaps, Map
 from flask_pymongo import PyMongo
 from html5lib import html5parser
 from pymongo import MongoClient
+import datetime
 import os
 import random
 import requests
@@ -73,16 +74,12 @@ def search_restaurants():
 
         try:
             #checks if ip address is being forwarded. depends if running locally or deployed
-            location_storage = {}
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                 response = requests.get("http://ip-api.com/json")
                 js = response.json()
                 location = js['city']
                 print(f"User's IP address: {js['query']}. (Not forwarded)")
                 print(f"Location based on ip address: {location}. (Not forwarded)")
-                location_storage['ip'] = response
-                location_storage['city'] = location
-                db.location_storage.insert_one()
 
             else:
                 print(f"User's IP address: {request.environ['HTTP_X_FORWARDED_FOR']}. (Forwarded)")
@@ -91,9 +88,6 @@ def search_restaurants():
                 js = response.json()
                 location = js['city']
                 print(f"Location based on ip address: {location}. (Forwarded)")
-                location_storage['ip'] = response
-                location_storage['city'] = location
-                db.location_storage.insert_one()
 
         except:
             pass
@@ -114,6 +108,13 @@ def search_restaurants():
 
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
+
+        user_info_storage = {}
+        user_info_storage['ip'] = js['query']
+        user_info_storage['city'] = location
+        user_info_storage['search_query'] = restaurant_type
+        user_info_storage['time'] = datetime.datetime.now()
+        db.user_info_storage.insert_one(user_info_storage)
 
         print(restaurant_type)
         print(restaurant_location)
