@@ -127,6 +127,7 @@ def search_restaurants():
         
         try:
             r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}") #Get html data from page
+            print(f"requests.get check: {r}")
             soup = BeautifulSoup(r.content, features="html5lib") #Parse html data with beautifulsoup
         except:
             flash("Error finding restaurants. Please try again!") #Present error if scraping fails for any reason
@@ -195,7 +196,7 @@ def search_restaurants():
             except:
                 new_restaurant["address"] = "Address Unavailable"
 
-            #Store dictionary information in database
+            #Store dictionary information in database. The purpose of this is so that random restaurants can be retrieved later without having to re-scrape every time
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
