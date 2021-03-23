@@ -69,11 +69,11 @@ def add_restaurant():
 def search_restaurants():
     ''' Search for new restaurants to add to databse '''
     if request.method == 'POST':
-        api_key = os.getenv('api_key')
         location = ''
 
+        #checks if ip address is being forwarded. depends if running locally or deployed
         try:
-            #checks if ip address is being forwarded. depends if running locally or deployed
+            #Method of getting user's ip if running locally
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                 response = requests.get("http://ip-api.com/json")
                 js = response.json()
@@ -81,6 +81,7 @@ def search_restaurants():
                 print(f"User's IP address: {js['query']}. (Not forwarded)")
                 print(f"Location based on ip address: {location}. (Not forwarded)")
 
+            #Method of getting user's ip if running deployed on heroku
             else:
                 print(f"User's IP address: {request.environ['HTTP_X_FORWARDED_FOR']}. (Forwarded)")
                 ip = request.environ['HTTP_X_FORWARDED_FOR']
@@ -92,13 +93,16 @@ def search_restaurants():
         except:
             pass
 
+        #Uses location retrieved from above if user wants to automatically search by their location
         if request.form['button'] == 'Search using my location!':
             food_type = request.form.get('food_type')
 
+        #Uses user entered location if user wants to search by input location
         else:
             food_type = request.form.get('food_type')
             location = request.form.get('location')
 
+            #Ensures user enters a location if they choose the 'enter location manually' option
             if request.form.get('location') == '':
                 flash("Please enter a location!")
                 return render_template('search_restaurants.html')
@@ -106,9 +110,11 @@ def search_restaurants():
             else:
                 pass
 
+        #Replace spaces with + because the url input expects a + in place of every space
         restaurant_type = food_type.replace(" ", "+")
         restaurant_location = location.replace(" ", "+")
 
+        #Store user info for debugging purposes
         user_info_storage = {}
         user_info_storage['ip'] = js['query']
         user_info_storage['city'] = location
@@ -120,45 +126,15 @@ def search_restaurants():
         print(restaurant_location)
         
         try:
-            r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}")
-            soup = BeautifulSoup(r.content, features="html5lib")
+            r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}") #Get html data from page
+            soup = BeautifulSoup(r.content, features="html5lib") #Parse html data with beautifulsoup
         except:
-            flash("Error finding restaurants. Please try again!")
-            render_template('home.html')
+            flash("Error finding restaurants. Please try again!") #Present error if scraping fails for any reason
+            render_template('home.html')# Redirects to home page
 
-        # r = requests.get(f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}").text
-        # soup = BeautifulSoup(r, 'html.parser')
 
-        # try:
-        #     url=f"https://api.scrapingdog.com/scrape?api_key={api_key}&url=https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}"
-        #     prox=f"http://scrapingdog:{api_key}@proxy.scrapingdog.com:8081"
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
-
-        # try:
-        #     proxyDict = {"http"  : prox, "https":prox}
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
-
-        # try:
-        #     r = requests.get(url, proxies=proxyDict).text
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
-
-        # try:
-        #     soup = BeautifulSoup(r, 'html.parser')
-        # except:
-        #     flash("Error finding restaurants. Please try again!")
-        #     print("Error: scraping failed")
-        #     render_template('home.html')
-
-        restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO"})
+        #For debugging purposes. Check if any restaurants are present in the list. If 0, the scraper probably needs updating as site has probably been updated
+        restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__8W8ca border--right__09f24__1u7Gt border--bottom__09f24__xdij8 border--left__09f24__rwKIa border-color--default__09f24__1eOdn"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
 
         #clear db before repopulating it with information from new search
@@ -168,46 +144,58 @@ def search_restaurants():
 
         #iterate through all discovered restaurants in the list and adds information to new_restaurant dictionary
         for i in range(0, len(restaurants_list)):
-            new_restaurant = {}
+            new_restaurant = {} #Create empty dictionary to store scraped data
 
+            #Scrape for restaurant name and store with the key, 'name', in dictionary
             try:
-                new_restaurant["name"] = restaurants_list[i].find("a", {"class":"link__09f24__1kwXV link-color--inherit__09f24__3PYlA link-size--inherit__09f24__2Uj95"}).string
+                new_restaurant["name"] = restaurants_list[i].find("a", {"class":"css-166la90"}).string
             except:
                 new_restaurant["name"] = "Name Unavailable"
 
+            #Scrape for restaurant price range and store with the key, 'price', in dictionary
             try:
-                new_restaurant["price"] = restaurants_list[i].find("span", {"class":"text__09f24__2tZKC priceRange__09f24__2O6le text-color--black-extra-light__09f24__38DtK text-align--left__09f24__3Drs0 text-bullet--after__09f24__1MWoX"}).string
+                new_restaurant["price"] = restaurants_list[i].find("span", {"class":"priceRange__09f24__2O6le css-xtpg8e"}).string
             except:
                 new_restaurant["price"] = "Price Unavailable"
             
+            #Scrape for restaurant rating and store with the key, 'rating', in dictionary
             try:
-                new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4__09f24__2YrSK border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                #Attempt to find 5 star review
+                new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-5__09f24__2YrSK border-color--default__09f24__1eOdn overflow--hidden__09f24__3z7CX"}).get('aria-label')
             except:
                 try:
-                    new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4-half__09f24__1YrPo border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                    #Attempt to find 4.5 star review
+                    new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4-half__09f24__1YrPo border-color--default__09f24__1eOdn overflow--hidden__09f24__3z7CX"}).get('aria-label')
                 except:
                     try:
-                        new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3-half__09f24__dpRnb border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                        #Attempt to find 4 star review
+                        new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-4__09f24__2YrSK border-color--default__09f24__1eOdn overflow--hidden__09f24__3z7CX"}).get('aria-label')
                     except:
                         try:
-                            new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3__09f24__Xlhbn border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                            #Attempt to find 3.5 star review
+                            new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3-half__09f24__2YrSK border-color--default__09f24__1eOdn overflow--hidden__09f24__3z7CX"}).get('aria-label')
                         except:
                             try:
-                                new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-5__09f24__N5JxY border-color--default__09f24__R1nRO overflow--hidden__09f24__3u-sw"}).get('aria-label')
+                                #Attempt to find 3 star review
+                                new_restaurant["rating"] = restaurants_list[i].find("div", {"class":"i-stars__09f24__1T6rz i-stars--regular-3__09f24__2YrSK border-color--default__09f24__1eOdn overflow--hidden__09f24__3z7CX"}).get('aria-label')
                             except:
+                                #Return rating unavailable if none of the above ratings are found
                                 new_restaurant["rating"] = "Rating Unavailable"
 
+            #Scrape for restaurant thumbnail and store with the key, 'thumbnail', in dictionary
             try:
-                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__3F3c5"})
+                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__1oZq_"})
                 new_restaurant["image"] = image['src']
             except:
                 new_restaurant["image"] = "Image Unavailable"
 
+            #Scrape for restaurant address and store with the key, 'address', in dictionary
             try:
                 new_restaurant["address"] = restaurants_list[i].find("span", {"class":"raw__09f24__3Obuy"}).string
             except:
-                new_restaurant["image"] = "Address Unavailable"
+                new_restaurant["address"] = "Address Unavailable"
 
+            #Store dictionary information in database
             db.restaurants.insert_one(new_restaurant)
             print(new_restaurant)
 
