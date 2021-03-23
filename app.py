@@ -17,11 +17,11 @@ MONGODB_PASSWORD = os.getenv('MONGODB_PASSWORD')
 MONGODB_DBNAME = 'Cluster1'
 google_maps_api_key = os.getenv('google_maps_api_key')
 
-app = Flask(__name__)
-GoogleMaps(app, key=google_maps_api_key)
+app = Flask(__name__) #Instantiate Flask app
+GoogleMaps(app, key=google_maps_api_key) #Instantiate GoogleMaps api
 app.secret_key = os.urandom(24)
 
-client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority")
+client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@cluster0.1uw6i.mongodb.net/{MONGODB_DBNAME}?retryWrites=true&w=majority") #Instantiate mongodb
 db = client[MONGODB_DBNAME]
 
 def get_coordinates(API_KEY, address_text):
@@ -122,8 +122,8 @@ def search_restaurants():
         user_info_storage['time'] = datetime.datetime.now()
         db.user_info_storage.insert_one(user_info_storage)
 
-        print(restaurant_type)
-        print(restaurant_location)
+        print(f"Restaurant Type: {restaurant_type}")
+        print(f"Restaurant Location: {restaurant_location}")
         
         try:
             r = requests.get(f"https://www.yelp.com/search?find_desc={restaurant_type}&find_loc={restaurant_location}") #Get html data from page
@@ -134,7 +134,8 @@ def search_restaurants():
             render_template('home.html')# Redirects to home page
 
 
-        #For debugging purposes. Check if any restaurants are present in the list. If 0, the scraper probably needs updating as site has probably been updated
+        #Check if any restaurants are present in the list. If 0, the scraper probably needs updating as site has probably been updated
+        #Also used by for loop to know how many restaurants need to be scraped
         restaurants_list = soup.find_all("div", {"class":"container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__8W8ca border--right__09f24__1u7Gt border--bottom__09f24__xdij8 border--left__09f24__rwKIa border-color--default__09f24__1eOdn"})
         print(f"Number of restaurants in list: {len(restaurants_list)}")
 
@@ -158,6 +159,20 @@ def search_restaurants():
                 new_restaurant["price"] = restaurants_list[i].find("span", {"class":"priceRange__09f24__2O6le css-xtpg8e"}).string
             except:
                 new_restaurant["price"] = "Price Unavailable"
+
+
+            #Scrape for restaurant thumbnail and store with the key, 'thumbnail', in dictionary
+            try:
+                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__1oZq_"})
+                new_restaurant["image"] = image['src']
+            except:
+                new_restaurant["image"] = "Image Unavailable"
+
+            #Scrape for restaurant address and store with the key, 'address', in dictionary
+            try:
+                new_restaurant["address"] = restaurants_list[i].find("span", {"class":"raw__09f24__3Obuy"}).string
+            except:
+                new_restaurant["address"] = "Address Unavailable"
             
             #Scrape for restaurant rating and store with the key, 'rating', in dictionary
             try:
@@ -182,19 +197,6 @@ def search_restaurants():
                             except:
                                 #Return rating unavailable if none of the above ratings are found
                                 new_restaurant["rating"] = "Rating Unavailable"
-
-            #Scrape for restaurant thumbnail and store with the key, 'thumbnail', in dictionary
-            try:
-                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__1oZq_"})
-                new_restaurant["image"] = image['src']
-            except:
-                new_restaurant["image"] = "Image Unavailable"
-
-            #Scrape for restaurant address and store with the key, 'address', in dictionary
-            try:
-                new_restaurant["address"] = restaurants_list[i].find("span", {"class":"raw__09f24__3Obuy"}).string
-            except:
-                new_restaurant["address"] = "Address Unavailable"
 
             #Store dictionary information in database. The purpose of this is so that random restaurants can be retrieved later without having to re-scrape every time
             db.restaurants.insert_one(new_restaurant)
