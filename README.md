@@ -1,5 +1,5 @@
 # Random Restaurant Generator
-A simple web app built with flask that will pick random restaurants for you near you, or in a location of your choice.
+A simple web app built with flask that will pick random restaurants for you near you, or in a location of your choice. Also displays basic restaurant information along with the location of the restaurant on a map.
 
 ## What you'll need
 - MongoDB running
