@@ -163,7 +163,7 @@ def search_restaurants():
 
             #Scrape for restaurant thumbnail and store with the key, 'thumbnail', in dictionary
             try:
-                image = restaurants_list[i].find("img", {"class":"photo-box-img__09f24__1oZq_"})
+                image = restaurants_list[i].find("img", {"class":"css-xlzvdl"})
                 new_restaurant["image"] = image['src']
             except:
                 new_restaurant["image"] = "Image Unavailable"
