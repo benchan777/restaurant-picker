@@ -38,3 +38,4 @@ tqdm==4.55.2
 urllib3==1.26.2
 webencodings==0.5.1
 Werkzeug==1.0.1
+yelpapi==2.4.0
