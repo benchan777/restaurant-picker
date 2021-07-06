@@ -12,7 +12,7 @@ import datetime, os, random, requests
 load_dotenv()
 MONGODB_USERNAME = os.getenv('MONGODB_USERNAME')
 MONGODB_PASSWORD = os.getenv('MONGODB_PASSWORD')
-MONGODB_DBNAME = 'Cluster1'
+MONGODB_DBNAME = 'RandomRestaurantPicker'
 google_maps_api_key = os.getenv('google_maps_api_key')
 yelp_api = YelpAPI(os.getenv('yelp_api_key'), timeout_s = 3.0) #Initialize Yelp api
 
