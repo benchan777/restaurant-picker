@@ -13,4 +13,4 @@ A simple web app built with flask that will pick random restaurants for you near
     python app.py
 
 ## Using the site
-A live version of this web app can be found [here](https://random-restaurant-picker.herokuapp.com/).
+A live version of this web app can be found [here](https://restaurant.benchan.tech/).
