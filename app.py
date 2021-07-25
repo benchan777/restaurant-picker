@@ -170,5 +170,4 @@ def show_restaurants():
         return render_template('show_restaurant.html', **context)
 
 if __name__ == '__main__':
-    app.config['ENV'] = 'development'
-    app.run(debug=True)
+    app.run()
