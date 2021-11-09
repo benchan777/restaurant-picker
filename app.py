@@ -1,10 +1,7 @@
-from bs4 import BeautifulSoup
-from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, redirect, url_for, jsonify, flash
 from flask_googlemaps import GoogleMaps, Map
 from flask_pymongo import PyMongo
-from html5lib import html5parser
 from pymongo import MongoClient
 from yelpapi import YelpAPI
 import datetime, os, random, requests
